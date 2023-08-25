@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
 
@@ -13,6 +13,14 @@ const ResetPassword = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+
+    const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        if (token) {
+            navigate('/dashboard');
+        }
+    }, [token, navigate]);
 
     const clearFields = () => {
         setPassword('');

@@ -1,32 +1,56 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from "axios";
-import {Link, useNavigate} from "react-router-dom";
-// import { Link } from 'react-router-dom';
-const Login = () => {
+import {useNavigate} from "react-router-dom";
+import {Link} from 'react-router-dom';
+
+const Register = () => {
+    const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState({});
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const token = localStorage.getItem('token');
+
+    useEffect(() => {
+        if (token) {
+            navigate('/dashboard');
+        }
+    }, [token, navigate]);
+
     const clearFields = () => {
         setEmail('');
         setPassword('');
     };
 
-    const handleLogin = (e) => {
+    const handleConfirmPasswordChange = (e) => {
+        setConfirmPassword(e.target.value);
+    };
+
+
+    const handleRegister = (e) => {
         e.preventDefault();
 
-        const userData = {email, password};
+        if (password !== confirmPassword) {
+            setErrors({password: ['Passwords do not match']});
+        } else {
+            // Passwords match, clear errors
+            setErrors({});
 
-        axios.post('http://127.0.0.1:8000/api/login', userData)
+            // Continue with form submission or other actions
+        }
+
+        const userData = {name, email, password, confirmPassword};
+
+        axios.post('http://127.0.0.1:8000/api/register', userData)
             .then((res) => {
                 if (res.data.success) {
                     setIsSubmitting(true);
-                    localStorage.setItem('token', res.data.token);
-                    localStorage.setItem('name', res.data.name);
                     clearFields();
-                    navigate('/dashboard');
+                    navigate('/');
                 } else {
                     setMessage(res.data.message);
                 }
@@ -43,7 +67,7 @@ const Login = () => {
             <div className="col-md-4">
                 <div className="card mt-5">
                     <div className="card-header">
-                        <h3 className="text-center">Login</h3>
+                        <h3 className="text-center">Register</h3>
                     </div>
 
                     {message && (<span className="d-flex justify-content-center mt-4">
@@ -54,7 +78,15 @@ const Login = () => {
 
 
                     <div className="card-body">
-                        <form className="form-components" onSubmit={handleLogin}>
+                        <form className="form-components" onSubmit={handleRegister}>
+
+                            <div className="mb-3">
+                                <label className="form-label">Name</label>
+                                <input type="text" name="name" className="form-control" value={name}
+                                       onChange={(e) => setName(e.target.value)} placeholder="Enter Your Name"/>
+                                {errors && errors.name && <div className="text-danger">{errors.name[0]}</div>}
+                            </div>
+
                             <div className="mb-3">
                                 <label className="form-label">Email address</label>
                                 <input type="email" name="email" className="form-control" value={email}
@@ -70,14 +102,28 @@ const Login = () => {
                                 {errors && errors.password &&
                                     <div className="text-danger">{errors.password[0]}</div>}
                             </div>
+
+                            <div className="mb-3">
+                                <label className="form-label">Confirm Password</label>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    className="form-control"
+                                    value={confirmPassword}
+                                    onChange={handleConfirmPasswordChange}
+                                    placeholder="Confirm Your Password"
+                                />
+                                {errors && errors.confirmPassword &&
+                                    <div className="text-danger">{errors.confirmPassword[0]}</div>}
+                            </div>
+
                             {/*<div className="mb-3">*/}
                             {/*    <button type="submit" className="btn btn-primary">Login</button>*/}
                             {/*</div>*/}
                             <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                                {isSubmitting ? 'Logging In...' : 'Login'}
+                                {isSubmitting ? 'Register In...' : 'Register'}
                             </button>
-                            <Link className="mx-3 btn btn-success" to={'/register'}>Register</Link>
-                            <Link className="mx-3 btn btn-info" to={'/forget'}>Forget Password</Link>
+                            <Link className="mx-3 btn btn-success" to={'/'}>Login</Link>
                         </form>
                     </div>
                 </div>
@@ -85,4 +131,4 @@ const Login = () => {
         </div>);
 };
 
-export default Login;
+export default Register;
